@@ -1,0 +1,1 @@
+# AIschedule_CSU
