@@ -1,20 +1,20 @@
-function getWeek(week){
-    let weekType;let numEnd;
-    if (week.indexOf("单周") > 0){
+function getWeek(week) {
+    let weekType; let numEnd;
+    if (week.indexOf("单周") > 0) {
         weekType = 1
         numEnd = week.indexOf("单周") - 1
-    }else if(week.indexOf("双周") > 0){
+    } else if (week.indexOf("双周") > 0) {
         weekType = 0
         numEnd = week.indexOf("双周") - 1
-    }else{
+    } else {
         weekType = 2
         numEnd = week.indexOf("周") - 1
     }
-    week = week.slice(0,numEnd)
+    week = week.slice(0, numEnd)
 
     let weekList = week.split(",")
     let weekListOneByOne = []
-    for (let i = 0; i < weekList.length; i++){
+    for (let i = 0; i < weekList.length; i++) {
         if (weekList[i].indexOf("-") > 0) {
             let addNum = 1
             startWeek = Number(weekList[i].split("-")[0])
@@ -23,10 +23,10 @@ function getWeek(week){
                 addNum = 2
                 if (startWeek % 2 != weekType) startWeek++
             }
-            for (let j = startWeek; j <= endWeek; j = j + addNum){
+            for (let j = startWeek; j <= endWeek; j = j + addNum) {
                 weekListOneByOne.push(j)
             }
-        }else{
+        } else {
             weekListOneByOne.push(parseInt(weekList[i]))
         }
     }
@@ -43,81 +43,83 @@ function scheduleHtmlParser(html) {
     let courseData = $("div.kbcontent")
     for (let count = 0; count < courseData.length; count++) {
         let classData = $(courseData[count]).find("font")
-        if (classData.length) {
-            let className = $(courseData[count]).text()
-            let classDataPart = {}
-            //console.log(classData.length)
-            for (let i = 0; i < classData.length; i++) {
-                //获取教师，周次，教室
-                //数据初始化,防止带入上一课程的数据
+        if (classData.length == 0) continue
+        let className = $(courseData[count]).text()
+        let classList = className.split("---------------------")
+        console.log(classList)
+        for (let i = 0; i < classList.length; i++)
+        {
+            let classPartData = {}
+            for (let j = i * 3; j < i * 3 + 3; j++)
+            {
                 var teacherName = ""
                 var classroom = ""
-                keyWord = $(classData[i]).attr("title")
+                keyWord = $(classData[j]).attr("title")
                 //console.log(keyWord)
-                if (keyWord == "老师") {
-                    teacherName = $(classData[i]).text()
-                    classDataPart["teacher"] = teacherName
-                    className = className.replace(teacherName,"")
-                    //console.log(teacherName)
+                if (keyWord == "老师") 
+                {
+                    teacherName = $(classData[j]).text()
+                    classPartData["teacher"] = teacherName
+                    classList[i] = classList[i].replace(teacherName, "")
+                
                 } else if (keyWord == "周次(节次)") {
-                    var weekDataOrigin = $(classData[i]).text()
+                    var weekDataOrigin = $(classData[j]).text()
+                    //console.log(weekDataOrigin)
                     var weekData = getWeek(weekDataOrigin)
-                    classDataPart["weeks"] = weekData
                     //console.log(weekData)
+                    classPartData["weeks"] = weekData
+                    classList[i] = classList[i].replace(weekDataOrigin, "")
+
                 } else if (keyWord == "教室") {
-                    classroom = $(classData[i]).text()
-                    classDataPart["position"] = classroom
+                    classroom = $(classData[j]).text()
+                    classPartData["position"] = classroom
+                    classList[i] = classList[i].replace(classroom, "")
                 }
             }
-            className = className.replace(weekDataOrigin,"").replace(classroom,"")
-            classDataPart["name"] = className
-            //console.log(className)
-            //console.log(classData.length)
-            //得到星期
-            if (count){
+            classPartData["name"] = classList[i]
+            //week
+            if (count) {
                 var whichday = (count - 1) % 7 + 1
-            }else{
+            } else {
                 var whichday = 7
             }
-            classDataPart["day"] = whichday
-            //得到第几节课
+            classPartData["day"] = whichday
+            //section
             let whichSection = parseInt(count / 7) + 1
-            classDataPart["sections"] = [{section : whichSection}]
-            //console.log(whichday)
-            result.push(classDataPart)
+            classPartData["sections"] = [{ section: whichSection }]
+            //console.log(classPartData)
+            result.push(classPartData)
         }
-        //console.log(count)
-        //console.log(courseData)
-     }
+    }
 
-     let sectionTimesInfos = [
-      {
-        "section": 1,
-        "startTime": "08:00",
-        "endTime": "09:40"
-      },
-      {
-        "section": 2,
-        "startTime": "10:00",
-        "endTime": "11:40"
-      },
-      {
-        "section": 3,
-        "startTime": "14:00",
-        "endTime": "15:40"
-      },
-      {
-        "section": 4,
-        "startTime": "16:00",
-        "endTime": "17:40"
-      },
-      {
-        "section": 5,
-        "startTime": "19:00",
-        "endTime": "20:40"
-      }
+    let sectionTimesInfos = [
+        {
+            "section": 1,
+            "startTime": "08:00",
+            "endTime": "09:40"
+        },
+        {
+            "section": 2,
+            "startTime": "10:00",
+            "endTime": "11:40"
+        },
+        {
+            "section": 3,
+            "startTime": "14:00",
+            "endTime": "15:40"
+        },
+        {
+            "section": 4,
+            "startTime": "16:00",
+            "endTime": "17:40"
+        },
+        {
+            "section": 5,
+            "startTime": "19:00",
+            "endTime": "20:40"
+        }
     ]
-     console.log(result)
+    console.log(result)
 
-    return { courseInfos: result, sectionTimes : sectionTimesInfos}
+    return { courseInfos: result, sectionTimes: sectionTimesInfos }
 }
